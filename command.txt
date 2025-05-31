@@ -1,0 +1,13 @@
+g++ test.cpp -o test -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ Game.cpp main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ Player.cpp Game.cpp main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ Player.cpp Game.cpp main.cpp Bullet.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ Enemy.cpp Player.cpp Game.cpp Bullet.cpp main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+
+g++ Enemy.cpp Player.cpp Game.cpp Bullet.cpp main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
