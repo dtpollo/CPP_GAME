@@ -11,8 +11,8 @@ Check out [my GitHub profile](https://github.com/dtpollo) for more projects.
 
 Before running or exploring the project, make sure you have the following tools installed:
 
-- [C/C++ Compiler](https://)  
-- [SFML Library](https://)
+- [C/C++ Compiler](https://gcc.gnu.org/)  
+- [SFML Library](https://www.sfml-dev.org/)
 
 ---
 
