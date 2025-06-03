@@ -278,25 +278,28 @@ void Game::updateGUI(){
 
 
 
-// This function help yo avoid to playe exit of bounds fo screen
+/*
+This function helps tp  update the collision of the player with the world boundaries.
+It checks if the player is outside the boundaries of the window and adjusts its position accordingly.
+*/
 void Game::updateCollision()
 {
-    //Left world collison
+    // Left
     if(this->player->getBounds().left < 0.f){
         this->player->setPosition(0.f, this->player->getBounds().top);
     }
 
-    //Right world collison
+    // Right
     else if(this->player->getBounds().left + this->player->getBounds().width >= this->window->getSize().x){
         this->player->setPosition(this->window->getSize().x - this->player->getBounds().width, this->player->getBounds().top);
     }
 
-    //Top world collison
+    // Top
     if(this->player->getBounds().top < 0.f){
         this->player->setPosition(this->player->getBounds().left, 0.f);
     }
 
-    //Bottom world collison
+    // Bottom
     else if(this->player->getBounds().top + this->player->getBounds().height >= this->window->getSize().y){
         this->player->setPosition(this->player->getBounds().left, this->window->getSize().y - this->player->getBounds().height);
     }
@@ -314,7 +317,7 @@ void Game::updateBullets(){
     for (auto *bullet : this->bullets){
         bullet->update();
         
-        // BUllet veification
+        // Just TOP
         if(bullet->getBounds().top + bullet->getBounds().height < 0.f){
             delete this->bullets.at(counter);
             this->bullets.erase(this->bullets.begin() + counter);
@@ -326,143 +329,199 @@ void Game::updateBullets(){
 
 
 /*
-In this function we update the enemies
+This function handles the spawning and movement of enemies.
+Increases a spawn timer each frame, and when the timer reaches a set value, a new enemy is spawned.
+Updates all existing enemies, removes those that go off-screen, 
+and handles collisions with the player.
 */
 void Game::updateEnemies(){
-    //Spawning
+    // Enemy spawn timer
     this->spawnTimer += 0.5f;
     if(this->spawnTimer >= this->spawnTimerMax){
 
-        // Crear enemigo temporal para obtener su tamaño
+        // Create a temporary enemy to get its width
         Enemy tempEnemy(0.f, 0.f);
         float enemyWidth = tempEnemy.getBounds().width;
 
+        // Generate a valid X position so the enemy doesn't spawn off-screen
         float maxX = static_cast<float>(this->window->getSize().x) - enemyWidth;
         float posX = static_cast<float>(rand() % static_cast<int>(maxX));
 
-        // Crear enemigo definitivo con posición válida
+        // Create and add the enemy just above the visible screen
         this->enemies.push_back(new Enemy(posX, -tempEnemy.getBounds().height));
 
+        // Reset the spawn timer
         this->spawnTimer = 0.f;
     }
 
-    //Update
+    // Update all enemies
     unsigned counter = 0;
     for (auto *enemy : this->enemies){
         enemy->update();
         
-        //Bullet culling  (top of screen)
+        // If the enemy has moved off the bottom of the screen
         if(enemy->getBounds().top > this->window->getSize().y){
-            
-            //REdcue enemy
+            // Penalize the player for missing the enemy
             this->player->loseHp(this->enemies.at(counter)->getDamage());
 
-            //Delete Enemy
+            // Delete and remove the enemy
             delete this->enemies.at(counter);
             this->enemies.erase(this->enemies.begin() + counter);
         }
-        
-        //Enemy player collison
+        // If the enemy collides with the player
         else if(enemy->getBounds().intersects(player->getBounds()))
         {
+            // Apply damage to the player
             this->player->loseHp(this->enemies.at(counter)->getDamage());
+
+            // Delete and remove the enemy
             delete this->enemies.at(counter);
             this->enemies.erase(this->enemies.begin() + counter);
         }
         ++counter;
     }
 }
-//=====================> Here end the main blucle of game
 
-/*-/*-/*-/*-/*-/*-/*-/*-/*-/*-/*-/*-/*/
+// =====================> Here end the main loop of game
 
-void Game::updateCombat()
-{
+
+
+/*
+This function handles the combat logic between bullets and enemies.
+It checks for collisions between each enemy and all bullets.
+If a collision is detected, the enemy and bullet are deleted, the score increases,
+and the enemy is removed from the game.
+*/
+void Game::updateCombat(){
     for (int i = 0; i < this->enemies.size(); ++i){
         bool enemy_deleted = false;
-        for(size_t k = 0; k <this->bullets.size() && enemy_deleted == false; k++){
 
+        // Loop through all bullets unless the enemy has already been deleted
+        for(size_t k = 0; k < this->bullets.size() && enemy_deleted == false; k++){
+
+            // Check if enemy and bullet intersect (collision detected)
             if(this->enemies[i]->getBounds().intersects(this->bullets[k]->getBounds())){
 
+                // Increase score
                 this->points += 1;
 
+                // Delete enemy and remove it from the vector
                 delete this->enemies[i];
                 this->enemies.erase(this->enemies.begin() + i);
 
+                // Delete bullet and remove it from the vector
                 delete this->bullets[k];
                 this->bullets.erase(this->bullets.begin() + k);
 
+                // Flag that the enemy was deleted to avoid invalid access
                 enemy_deleted = true;
             }
         }
     }    
 }
 
+
+/*
+This is the main update function for the game logic.
+It is called every frame and updates all key components of the game.
+*/
 void Game::update()
 {
+    // Movement, Shooting
     this->updateInput();
+
+    // Attack cooldowns, animations
     this->player->update();
+
+    // Player screen boundaries
     this->updateCollision();
+
+    // Movement and out-of-screen cleanup
     this->updateBullets();
+
+    // Enemy spawning, movement, and removal
     this->updateEnemies();
+
+    // Bullet-enemy collisions and score
     this->updateCombat();
+
+    // Update GUI elements
     this->updateGUI();
 
-    //Can this function finalPollEvents()
+    // Game Over condition
     if(this->player->getHp() <= 0){
+        // Stop background music if it's still playing
         if (this->music.getStatus() == sf::Music::Playing) {
             this->music.stop();
         }
+
+        // Play the Game Over sound
         this->gameOverSound.play();
     }
 }
 
 
+/*
+This function renders GUI elements
+into the game window like:
+- Score text
+- Background of the health bar
+- Current health bar of the player
+*/
 void Game::renderGUI()
 {
-    this->window->draw(this->pointText);
-    this->window->draw(this->PlayerHpBarBack);
-    this->window->draw(this->PlayerHpBar);
+    this->window->draw(this->pointText); 
+    this->window->draw(this->PlayerHpBarBack);  
+    this->window->draw(this->PlayerHpBar);    
 }
 
+// This function renders the space background
 void Game::renderBackground()
 {
     this->window->draw(this->spaceBackground);
 }
 
+
+/*
+This function is responsible for rendering all visual elements of the game
+in the screen in the correct order.
+*/
 void Game::render()
 {
+    // Clear the screen before drawing the next frame
     this->window->clear();
 
-    //Draw space
+    // Draw the background (space image)
     this->renderBackground();
 
     /*
-    Draw all the stuffs
-    f_1
-    f_2
-    :
-    f_n
-    this->window->display(); finally
+    Draw all main game objects in the correct rendering order:
+    1. Player
+    2. Bullets
+    3. Enemies
+    4. GUI
     */
 
+    // Draw the player sprite
     this->player->render(*this->window);
 
+    // Draw all bullets
     for (auto *bullet : this->bullets){
         bullet->render(this->window);
     }
 
+    // Draw all enemies
     for (auto *enemy : this->enemies){
         enemy->render(this->window);
     }
 
-    
+    // Draw GUI elements (score, health bar)
     this->renderGUI();
 
-    //Game Over
-
+    // If the player is dead, draw the Game Over text
     if(this->player->getHp() <= 0)
         this->window->draw(this->gameOver);
 
+    // Display the frame (swap the buffer to show all drawings)
     this->window->display();
 }
