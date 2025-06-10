@@ -14,7 +14,7 @@ void Enemy::initVariables()
 void Enemy::initTexture()
 {
     //Load a texture from file
-    if(!this->texture.loadFromFile("/home/chickenux/Documents/JUEGO_2/Textures/finalPOLICE.png")){
+    if(!this->texture.loadFromFile("Textures/finalPOLICE.png")){
         std::cout << "ERROR::PLAYER::INITEXTURE::Could not load texture file";
     }
 }

@@ -12,7 +12,7 @@ void Player::initVariables()
 void Player::initTexture()
 {
     //Load a texture from file
-    if(!this->texture.loadFromFile("/home/chickenux/Documents/JUEGO_2/Textures/finalAstronaut.png")){
+    if(!this->texture.loadFromFile("Textures/finalAstronaut.png")){
         std::cout << "ERROR::PLAYER::INITEXTURE::Could not load texture file";
     }
 }
